@@ -47,7 +47,7 @@ class TrainerConfig:
     warmup_tokens = 375e6 # these two numbers come from the GPT-3 paper, but may not be good defaults elsewhere
     final_tokens = 260e9 # (at what point we reach 10% of original LR)
     # checkpoint settings
-    ckpt_path = None
+    ckpt_path = "D:/Uni/Deep_Learning/DL/decision-transformer-master/atari/checkpoints"
     num_workers = 0 # for DataLoader
 
     def __init__(self, **kwargs):
@@ -72,7 +72,7 @@ class Trainer:
         # DataParallel wrappers keep raw model object in .module attribute
         raw_model = self.model.module if hasattr(self.model, "module") else self.model
         logger.info("saving %s", self.config.ckpt_path)
-        # torch.save(raw_model.state_dict(), self.config.ckpt_path)
+        torch.save(raw_model.state_dict(), f"{self.config.ckpt_path}/model.pth")
 
     def train(self):
         model, config = self.model, self.config

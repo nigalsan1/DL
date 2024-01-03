@@ -52,7 +52,7 @@ def create_dataset(num_buffers, num_steps, game, data_dir_prefix, trajectories_p
             trajectories_to_load = trajectories_per_buffer
             while not done:
                 states, ac, ret, next_states, next_action, next_reward, terminal, indices = frb.sample_transition_batch(batch_size=1, indices=[i])
-                states = states.transpose((0, 3, 1, 2))[0] # (1, 84, 84, 4) --> (4, 84, 84)
+                states = states.transpose((0, 3, 1, 2))[0]  # (1, 84, 84, 4) --> (4, 84, 84)
                 obss += [states]
                 actions += [ac[0]]
                 stepwise_returns += [ret[0]]
@@ -66,9 +66,11 @@ def create_dataset(num_buffers, num_steps, game, data_dir_prefix, trajectories_p
                 returns[-1] += ret[0]
                 i += 1
                 if i >= 100000:
+                    print("more than 100000 transitions in this buffer %d, resetting" % buffer_num)
                     obss = obss[:curr_num_transitions]
                     actions = actions[:curr_num_transitions]
                     stepwise_returns = stepwise_returns[:curr_num_transitions]
+                    done_idxs = done_idxs[:curr_num_transitions]
                     returns[-1] = 0
                     i = transitions_per_buffer[buffer_num]
                     done = True

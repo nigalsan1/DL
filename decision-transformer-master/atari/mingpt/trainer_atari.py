@@ -34,6 +34,9 @@ import cv2
 import torch
 from PIL import Image
 
+import ale_py.roms
+ale_py.roms.Pong = r"C:\Users\thiem\Downloads\atari-py-0.2.5\atari-py-0.2.5\atari_py\atari_roms\tennis.bin"
+
 class TrainerConfig:
     # optimization parameters
     max_epochs = 10
@@ -44,10 +47,11 @@ class TrainerConfig:
     weight_decay = 0.1 # only applied on matmul weights
     # learning rate decay params: linear warmup followed by cosine decay to 10% of original
     lr_decay = False
-    warmup_tokens = 375e6 # these two numbers come from the GPT-3 paper, but may not be good defaults elsewhere
-    final_tokens = 260e9 # (at what point we reach 10% of original LR)
+    warmup_tokens = 375e6  # these two numbers come from the GPT-3 paper, but may not be good defaults elsewhere
+    final_tokens = 260e9  # (at what point we reach 10% of original LR)
     # checkpoint settings
-    ckpt_path = "D:/Uni/Deep_Learning/DL/decision-transformer-master/atari/checkpoints"
+    # ckpt_path = "D:/Uni/Deep_Learning/DL/decision-transformer-master/atari/checkpoints"
+    ckpt_path = "C:/Users/thiem/Documents/UNIProjects/DL/decision-transformer-master/atari/checkpoints"
     num_workers = 0 # for DataLoader
 
     def __init__(self, **kwargs):
@@ -68,11 +72,11 @@ class Trainer:
             self.device = torch.cuda.current_device()
             self.model = torch.nn.DataParallel(self.model).to(self.device)
 
-    def save_checkpoint(self):
+    def save_checkpoint(self, id=""):
         # DataParallel wrappers keep raw model object in .module attribute
         raw_model = self.model.module if hasattr(self.model, "module") else self.model
         logger.info("saving %s", self.config.ckpt_path)
-        torch.save(raw_model.state_dict(), f"{self.config.ckpt_path}/model.pth")
+        torch.save(raw_model.state_dict(), f"{self.config.ckpt_path}/model{id}.pth")
 
     def train(self):
         model, config = self.model, self.config
@@ -153,6 +157,8 @@ class Trainer:
             # if self.config.ckpt_path is not None and good_model:
             #     best_loss = test_loss
             #     self.save_checkpoint()
+            # save model after each epoch
+            self.save_checkpoint(id="_" + self.config.game + "_epoch_" + str(epoch))
 
             # -- pass in target returns
             if self.config.model_type == 'naive':
@@ -166,6 +172,8 @@ class Trainer:
                     eval_return = self.get_returns(14000)
                 elif self.config.game == 'Pong':
                     eval_return = self.get_returns(20)
+                elif self.config.game == 'Tennis':
+                    eval_return = self.get_returns(1)
                 else:
                     raise NotImplementedError()
             else:

@@ -79,14 +79,13 @@ class Trainer:
         model, config = self.model, self.config
         raw_model = model.module if hasattr(self.model, "module") else model
         optimizer = raw_model.configure_optimizers(config)
-
+        is_train = True
+        model.train(is_train)
+        data = self.train_dataset if is_train else self.test_dataset
+        loader = DataLoader(data, shuffle=True, pin_memory=True,
+                            batch_size=config.batch_size,
+                            num_workers=config.num_workers)
         def run_epoch(split, epoch_num=0):
-            is_train = split == 'train'
-            model.train(is_train)
-            data = self.train_dataset if is_train else self.test_dataset
-            loader = DataLoader(data, shuffle=True, pin_memory=True,
-                                batch_size=config.batch_size,
-                                num_workers=config.num_workers)
 
             losses = []
             pbar = tqdm(enumerate(loader), total=len(loader)) if is_train else enumerate(loader)

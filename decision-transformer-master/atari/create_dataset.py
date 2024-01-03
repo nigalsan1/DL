@@ -45,7 +45,7 @@ def create_dataset(num_buffers, num_steps, game, data_dir_prefix, trajectories_p
             gamma=0.99,
             observation_dtype=np.uint8,
             batch_size=32,
-            replay_capacity=100000)
+            replay_capacity=300000)
         if frb._loaded_buffers:
             done = False
             curr_num_transitions = len(obss)
@@ -65,8 +65,8 @@ def create_dataset(num_buffers, num_steps, game, data_dir_prefix, trajectories_p
                         trajectories_to_load -= 1
                 returns[-1] += ret[0]
                 i += 1
-                if i >= 100000:
-                    print("more than 100000 transitions in this buffer %d, resetting" % buffer_num)
+                if i >= 300000:
+                    print("more than 300000 transitions in this buffer %d, resetting" % buffer_num)
                     obss = obss[:curr_num_transitions]
                     actions = actions[:curr_num_transitions]
                     stepwise_returns = stepwise_returns[:curr_num_transitions]
@@ -78,6 +78,7 @@ def create_dataset(num_buffers, num_steps, game, data_dir_prefix, trajectories_p
             transitions_per_buffer[buffer_num] = i
         print('Time Elapsed: %d' % (time.time() - curr_time))
         print('this buffer has %d loaded transitions and there are now %d transitions total divided into %d trajectories' % (i, len(obss), num_trajectories))
+        print("current length of obss: %d" % len(obss))
 
     actions = np.array(actions)
     returns = np.array(returns)
@@ -104,5 +105,8 @@ def create_dataset(num_buffers, num_steps, game, data_dir_prefix, trajectories_p
         timesteps[start_index:i+1] = np.arange(i+1 - start_index)
         start_index = i+1
     print('max timestep is %d' % max(timesteps))
+
+    # save dataset
+    np.savez('arrays_500000.npz', obss=obss, actions=actions, returns=returns, done_idxs=done_idxs, rtg=rtg, timesteps=timesteps)
 
     return obss, actions, returns, done_idxs, rtg, timesteps

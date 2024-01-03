@@ -5,7 +5,9 @@ import numpy as np
 import cv2
 import torch
 import ale_py.roms
-ale_py.roms.Pong = "D:/Uni/Deep_Learning/Legacy_Roms/pong.bin"
+# ale_py.roms.Pong = "D:/Uni/Deep_Learning/Legacy_Roms/pong.bin"
+# ale_py.roms.Pong = r"C:\Users\thiem\Downloads\atari-py-0.2.5\atari-py-0.2.5\atari_py\atari_roms\pong.bin"
+ale_py.roms.Pong = r"C:\Users\thiem\Downloads\atari-py-0.2.5\atari-py-0.2.5\atari_py\atari_roms\tennis.bin"
 
 n_steps = 1000
 
@@ -13,9 +15,11 @@ env = gym.make("ALE/Pong-v5", render_mode="human", obs_type="grayscale", framesk
 observation, info = env.reset()
 
 # Load Model
-mconf = GPTConfig(6, 150, n_layer=6, n_head=8, n_embd=128, model_type="reward_conditioned", max_timestep=4731)
+# mconf = GPTConfig(6, 150, n_layer=6, n_head=8, n_embd=128, model_type="reward_conditioned", max_timestep=4731)
+mconf = GPTConfig(18, 30, n_layer=6, n_head=8, n_embd=128, model_type="reward_conditioned", max_timestep=10460)
 model = GPT(mconf)
-model.load_state_dict(torch.load('./saved_checkpoints/model_Pong_0.pth'))
+# model.load_state_dict(torch.load('./saved_checkpoints/model_Pong_0.pth'))
+model.load_state_dict(torch.load('./saved_checkpoints/model_Tennis_0.pth'))
 model.eval()
 action = None
 states = np.zeros((1, 50, 4*84*84))

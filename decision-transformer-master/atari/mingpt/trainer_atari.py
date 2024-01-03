@@ -47,7 +47,8 @@ class TrainerConfig:
     warmup_tokens = 375e6 # these two numbers come from the GPT-3 paper, but may not be good defaults elsewhere
     final_tokens = 260e9 # (at what point we reach 10% of original LR)
     # checkpoint settings
-    ckpt_path = "D:/Uni/Deep_Learning/DL/decision-transformer-master/atari/checkpoints"
+    # ckpt_path = "D:/Uni/Deep_Learning/DL/decision-transformer-master/atari/checkpoints"
+    ckpt_path = r"C:\Users\thiem\Documents\UNIProjects\DL\decision-transformer-master\atari\saved_checkpoints"
     num_workers = 4 # for DataLoader
 
     def __init__(self, **kwargs):
@@ -68,7 +69,7 @@ class Trainer:
             self.device = torch.cuda.current_device()
             self.model = torch.nn.DataParallel(self.model).to(self.device)
 
-    def save_checkpoint(self):
+    def save_checkpoint(self, epoch):
         # DataParallel wrappers keep raw model object in .module attribute
         raw_model = self.model.module if hasattr(self.model, "module") else self.model
         logger.info("saving %s", self.config.ckpt_path)
@@ -143,7 +144,6 @@ class Trainer:
         self.tokens = 0 # counter used for learning rate decay
 
         for epoch in range(config.max_epochs):
-
             run_epoch('train', epoch_num=epoch)
             # save checkpoints
             self.save_checkpoint(epoch)
@@ -169,7 +169,8 @@ class Trainer:
                 elif self.config.game == 'Pong':
                     eval_return = self.get_returns(20)
                 elif self.config.game == 'Tennis':
-                    eval_return = self.get_returns(1)
+                    if epoch % 5 == 0 and epoch > 0:
+                        eval_return = self.get_returns(23)
                 else:
                     raise NotImplementedError()
             else:

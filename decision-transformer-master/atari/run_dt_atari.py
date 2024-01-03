@@ -66,6 +66,7 @@ class StateActionReturnDataset(Dataset):
         return states, actions, rtgs, timesteps
 
 if __name__ == "__main__":
+
     obss, actions, returns, done_idxs, rtgs, timesteps = create_dataset(args.num_buffers, args.num_steps, args.game, args.data_dir_prefix, args.trajectories_per_buffer)
 
     # set up logging

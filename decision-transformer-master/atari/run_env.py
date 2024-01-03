@@ -1,11 +1,14 @@
 import gymnasium as gym
+# import gym
 from mingpt.model_atari import GPT, GPTConfig
 from mingpt.utils import sample
 import numpy as np
 import cv2
 import torch
 import ale_py.roms
-ale_py.roms.Pong = "D:/Uni/Deep_Learning/Legacy_Roms/pong.bin"
+# ale_py.roms.Pong = "D:/Uni/Deep_Learning/Legacy_Roms/pong.bin"
+# ale_py.roms.Pong = r"C:\Users\thiem\Downloads\pong.bin"
+ale_py.roms.Pong = r"C:\Users\thiem\Downloads\atari-py-0.2.5\atari-py-0.2.5\atari_py\atari_roms\pong.bin"
 
 
 
@@ -15,6 +18,7 @@ observation, info = env.reset()
 # Load Model
 mconf = GPTConfig(6, 150, n_layer=6, n_head=8, n_embd=128, model_type="reward_conditioned", max_timestep=2369)
 model = GPT(mconf)
+# model.load_state_dict(torch.load('./checkpoints/model.pth'))
 model.load_state_dict(torch.load('./checkpoints/model.pth'))
 
 action = None

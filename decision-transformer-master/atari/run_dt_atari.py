@@ -18,6 +18,7 @@ import pickle
 import blosc
 import argparse
 from create_dataset import create_dataset
+import wandb
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--seed', type=int, default=123)
@@ -88,6 +89,12 @@ if __name__ == "__main__":
                           lr_decay=True, warmup_tokens=512*20, final_tokens=2*len(train_dataset)*args.context_length*3,
                           num_workers=4, seed=args.seed, model_type=args.model_type, game=args.game, max_timestep=max(timesteps))
     trainer = Trainer(model, train_dataset, None, tconf)
+
+    wandb_conf = tconf.__dict__.copy()
+    wandb_conf.update(mconf.__dict__)
+    wandb_conf['max_rtg'] = max(rtgs)
+    wandb.init(project="DL-Project", entity="eth_ftw", config=wandb_conf)
+
 
 
     trainer.train()

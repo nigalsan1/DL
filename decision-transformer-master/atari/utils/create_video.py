@@ -5,14 +5,24 @@ import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from fixed_replay_buffer import FixedReplayBuffer
 
-def create_gif(frames, num, fps=10, ):
+def create_gif(path, frames, num, fps=10):
     # Create a GIF
 
     # frames = np.random.randint(0, 256, (50, 84, 84), dtype=np.uint8)  # Example data
-    with imageio.get_writer(f'my_video_{num}.mp4', fps=fps, macro_block_size=1) as writer:
+    if os.path.exists(f'{path}/my_video_{num}.gif'):
+        os.remove(f'{path}/my_video_{num}.gif')
+    with imageio.get_writer(f'{path}/my_video_{num}.gif', fps=fps, macro_block_size=1) as writer:
         for frame in frames:
             writer.append_data(frame)
 
+def create_mp4(path, frames, num, fps=10):
+    # Create an MP4
+    # frames = np.random.randint(0, 256, (50, 84, 84), dtype=np.uint8)  # Example data
+    if os.path.exists(f'{path}/my_video_{num}.mp4'):
+        os.remove(f'{path}/my_video_{num}.mp4')
+    with imageio.get_writer(f'{path}/my_video_{num}.mp4', fps=fps, macro_block_size=1) as writer:
+        for frame in frames:
+            writer.append_data(frame)
 
 if __name__ == '__main__':
     obss = []

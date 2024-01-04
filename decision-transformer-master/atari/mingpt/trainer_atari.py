@@ -18,7 +18,10 @@ import logging
 
 from tqdm import tqdm
 import numpy as np
-
+import os
+import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from utils.create_video import create_gif, create_mp4
 import torch
 import torch.optim as optim
 from torch.optim.lr_scheduler import LambdaLR
@@ -33,7 +36,7 @@ import random
 import cv2
 import torch
 from PIL import Image
-
+import wandb
 class TrainerConfig:
     # optimization parameters
     max_epochs = 10
@@ -47,8 +50,9 @@ class TrainerConfig:
     warmup_tokens = 375e6 # these two numbers come from the GPT-3 paper, but may not be good defaults elsewhere
     final_tokens = 260e9 # (at what point we reach 10% of original LR)
     # checkpoint settings
-    # ckpt_path = "D:/Uni/Deep_Learning/DL/decision-transformer-master/atari/checkpoints"
-    ckpt_path = r"C:\Users\thiem\Documents\UNIProjects\DL\decision-transformer-master\atari\saved_checkpoints"
+    ckpt_path = "D:/Uni/Deep_Learning/DL/decision-transformer-master/atari/checkpoints"
+    # ckpt_path = r"C:\Users\thiem\Documents\UNIProjects\DL\decision-transformer-master\atari\saved_checkpoints"
+    video_save_path = r"D:\Uni\Deep_Learning\DL\decision-transformer-master\atari\tmp"
     num_workers = 4 # for DataLoader
 
     def __init__(self, **kwargs):
@@ -79,16 +83,17 @@ class Trainer:
         model, config = self.model, self.config
         raw_model = model.module if hasattr(self.model, "module") else model
         optimizer = raw_model.configure_optimizers(config)
-        is_train = True
-        model.train(is_train)
-        data = self.train_dataset if is_train else self.test_dataset
-        loader = DataLoader(data, shuffle=True, pin_memory=True,
-                            batch_size=config.batch_size,
-                            num_workers=config.num_workers)
-        def run_epoch(split, epoch_num=0):
 
+        def run_epoch(split, epoch_num=0):
+            is_train = split == 'train'
+            model.train(is_train)
+            data = self.train_dataset if is_train else self.test_dataset
+            loader = DataLoader(data, shuffle=True, pin_memory=True,
+                                batch_size=config.batch_size,
+                                num_workers=config.num_workers)
             losses = []
             pbar = tqdm(enumerate(loader), total=len(loader)) if is_train else enumerate(loader)
+            wandb.log({"epoch": epoch})
             for it, (x, y, r, t) in pbar:
 
                 # place data on the correct device
@@ -129,6 +134,8 @@ class Trainer:
                         lr = config.learning_rate
 
                     # report progress
+                    if it % 25 == 0:
+                        wandb.log({"loss": loss, "lr": lr, "epoch": epoch})
                     pbar.set_description(f"epoch {epoch+1} iter {it}: train loss {loss.item():.5f}. lr {lr:e}")
 
             if not is_train:
@@ -166,10 +173,11 @@ class Trainer:
                 elif self.config.game == 'Qbert':
                     eval_return = self.get_returns(14000)
                 elif self.config.game == 'Pong':
+                    # if epoch % 5 == 0 and epoch > 0:
                     eval_return = self.get_returns(20)
                 elif self.config.game == 'Tennis':
-                    if epoch % 5 == 0 and epoch > 0:
-                        eval_return = self.get_returns(23)
+                    # if epoch % 5 == 0 and epoch > 0:
+                    eval_return = self.get_returns(1)
                 else:
                     raise NotImplementedError()
             else:
@@ -198,6 +206,7 @@ class Trainer:
             while True:
                 if done:
                     state, reward_sum, done = env.reset(), 0, False
+
                 action = sampled_action.cpu().numpy()[0,-1]
                 actions += [sampled_action]
                 state, reward, done = env.step(action)
@@ -205,6 +214,12 @@ class Trainer:
                 j += 1
 
                 if done:
+
+                    if i % 5 == 0:
+                        wandb_states = all_states.cpu().numpy().squeeze()[:, 0, :, :]
+                        wandb_states = (wandb_states * 255).astype(np.uint8)
+                        create_mp4(self.config.video_save_path, wandb_states, i, fps=30)
+                        wandb.log({"video": wandb.Video(f"{self.config.video_save_path}/my_video_{i}.mp4", fps=30, format="gif")})
                     T_rewards.append(reward_sum)
                     break
 
@@ -219,9 +234,11 @@ class Trainer:
                     actions=torch.tensor(actions, dtype=torch.long).to(self.device).unsqueeze(1).unsqueeze(0), 
                     rtgs=torch.tensor(rtgs, dtype=torch.long).to(self.device).unsqueeze(0).unsqueeze(-1), 
                     timesteps=(min(j, self.config.max_timestep) * torch.ones((1, 1, 1), dtype=torch.int64).to(self.device)))
+
         env.close()
         eval_return = sum(T_rewards)/10.
         print("target return: %d, eval return: %d" % (ret, eval_return))
+        wandb.log({"target return": ret, "eval return": eval_return})
         self.model.train(True)
         return eval_return
 

@@ -107,6 +107,6 @@ def create_dataset(num_buffers, num_steps, game, data_dir_prefix, trajectories_p
     print('max timestep is %d' % max(timesteps))
 
     # save dataset
-    np.savez('arrays_500000.npz', obss=obss, actions=actions, returns=returns, done_idxs=done_idxs, rtg=rtg, timesteps=timesteps)
+    # np.savez('arrays_500000.npz', obss=obss, actions=actions, returns=returns, done_idxs=done_idxs, rtg=rtg, timesteps=timesteps)
 
     return obss, actions, returns, done_idxs, rtg, timesteps

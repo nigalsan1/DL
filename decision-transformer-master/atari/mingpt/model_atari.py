@@ -218,6 +218,7 @@ class GPT(nn.Module):
 
     # state, action, and return
     def forward(self, states, actions, targets=None, rtgs=None, timesteps=None):
+        # block_size is the context length
         # states: (batch, block_size, 4*84*84)
         # actions: (batch, block_size, 1)
         # targets: (batch, block_size, 1)

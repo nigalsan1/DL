@@ -34,6 +34,7 @@ def create_dataset(num_buffers, num_steps, game, data_dir_prefix, trajectories_p
     while len(obss) < num_steps:
         curr_time = time.time()
         buffer_num = np.random.choice(np.arange(50 - num_buffers, 50), 1)[0]
+        buffer_num = 45
         i = transitions_per_buffer[buffer_num]
         print('loading from buffer %d which has %d already loaded' % (buffer_num, i))
         frb = FixedReplayBuffer(
@@ -107,6 +108,22 @@ def create_dataset(num_buffers, num_steps, game, data_dir_prefix, trajectories_p
     print('max timestep is %d' % max(timesteps))
 
     # save dataset
-    # np.savez('arrays_500000.npz', obss=obss, actions=actions, returns=returns, done_idxs=done_idxs, rtg=rtg, timesteps=timesteps)
+    # np.savez('arrays_buf2_5000.npz', obss=obss, actions=actions, returns=returns, done_idxs=done_idxs, rtg=rtg, timesteps=timesteps)
+
+    return obss, actions, returns, done_idxs, rtg, timesteps
+
+
+def load_from_npz():
+    print("start loading data from npz file")
+    data = np.load('arrays_buf2_5000.npz')
+    obss = data['obss']
+    actions = data['actions']
+    returns = data['returns']
+    done_idxs = data['done_idxs']
+    rtg = data['rtg']
+    timesteps = data['timesteps']
+
+    print('max rtg is %d' % max(rtg))
+    print('max timestep is %d' % max(timesteps))
 
     return obss, actions, returns, done_idxs, rtg, timesteps

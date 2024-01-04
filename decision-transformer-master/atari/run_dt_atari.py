@@ -17,7 +17,7 @@ import torch
 import pickle
 import blosc
 import argparse
-from create_dataset import create_dataset
+from create_dataset import create_dataset, load_from_npz
 import wandb
 
 parser = argparse.ArgumentParser()
@@ -69,6 +69,7 @@ class StateActionReturnDataset(Dataset):
 if __name__ == "__main__":
 
     obss, actions, returns, done_idxs, rtgs, timesteps = create_dataset(args.num_buffers, args.num_steps, args.game, args.data_dir_prefix, args.trajectories_per_buffer)
+    # obss, actions, returns, done_idxs, rtgs, timesteps = load_from_npz()
 
     # set up logging
     logging.basicConfig(

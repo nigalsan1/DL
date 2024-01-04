@@ -24,6 +24,7 @@ def create_mp4(path, frames, num, fps=10):
         for frame in frames:
             writer.append_data(frame)
 
+
 if __name__ == '__main__':
     obss = []
     actions = []
@@ -31,15 +32,17 @@ if __name__ == '__main__':
     done_idxs = []
     stepwise_returns = []
     transitions_per_buffer = np.zeros(50, dtype=int)
-    trajectories_per_buffer = 1
+    trajectories_per_buffer = 0
     num_trajectories = 0
-    buffer_num = 0
+    buffer_num = 45
     i = transitions_per_buffer[buffer_num]
     print('loading from buffer %d which has %d already loaded' % (buffer_num, i))
     frb = FixedReplayBuffer(
-        data_dir=r"D:\Uni\Deep_Learning\DL\decision-transformer-master\atari\data\Tennis/1/replay_logs",
+        # data_dir=r"D:\Uni\Deep_Learning\DL\decision-transformer-master\atari\data\Tennis/1/replay_logs",
+        # data_dir=r"C:\Users\thiem\Documents\UNIProjects\DL\decision-transformer-master\atari\data\Tennis\1\replay_logs",
+        data_dir=r"C:\Users\thiem\Documents\UNIProjects\DL\decision-transformer-master\atari\data\Pong\1\replay_logs",
         replay_suffix=buffer_num,
-        observation_shape=(210, 160),
+        observation_shape=(84, 84),
         stack_size=4,
         update_horizon=1,
         gamma=0.99,
